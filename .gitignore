@@ -3,6 +3,7 @@ __pycache__/
 *.py[oc]
 build/
 .idea/
+.vscode/
 dist/
 wheels/
 *.egg-info
