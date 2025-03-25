@@ -38,3 +38,5 @@ dependencies = [
 ]
 
 [project.urls]
+repository = "https://github.com/sgarg26/fastrtc-kroko"
+issues = "https://github.com/sgarg26/fastrtc-kroko/issues"
