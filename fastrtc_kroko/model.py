@@ -67,6 +67,7 @@ class KrokoSTT(STTModel):
         self.model_paths = {}
         self._download_models()
         self.recognizer = self._create_recognizer()
+        self.stream = self.recognizer.create_stream()
 
     def _download_models(self):
         """
