@@ -73,7 +73,7 @@ class KrokoSTT(STTModel):
         """
         Downloads encoder, decoder, joiner and tokens.txt from huggingface.
         """
-        repo_id = "Banafo/test-onnx"
+        repo_id = "Banafo/kroko-asr"
         for model_name, filename in self.model_filenames.items():
             self.model_paths[model_name] = hf_hub_download(repo_id=repo_id, token=self.hf_token, filename=filename)
 
