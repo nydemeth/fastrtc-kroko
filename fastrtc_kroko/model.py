@@ -100,10 +100,9 @@ class KrokoSTT(STTModel):
         if audio_np.ndim != 1:
             audio_np = audio_np.reshape(-1)
 
-        stream = self.recognizer.create_stream()
-        stream.accept_waveform(sr, audio_np)
-        while self.recognizer.is_ready(stream):
-            self.recognizer.decode_stream(stream)
-        return self.recognizer.get_result(stream)
-
-
+        self.stream.accept_waveform(16000, audio_np)
+        while self.recognizer.is_ready(self.stream):
+            self.recognizer.decode_stream(self.stream)
+        result = self.recognizer.get_result(self.stream)
+        self.recognizer.reset(self.stream)
+        return result
