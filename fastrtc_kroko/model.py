@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Literal, Protocol
 
 import click
+from dotenv import load_dotenv
 import librosa
 import numpy as np
 import sherpa_onnx
@@ -13,12 +14,13 @@ from huggingface_hub import hf_hub_download
 from numpy.typing import NDArray
 
 curr_dir = Path(__file__).parent
+load_dotenv()
 
 class STTModel(Protocol):
     def stt(self, audio: tuple[int, NDArray[np.int16 | np.float32]]) -> str: ...
 
 @lru_cache
-def get_stt_model(hf_token: str | None, lang: Literal["en", "fr"] = "en") -> STTModel:
+def get_stt_model(hf_token: str | None = None, lang: Literal["en", "fr"] = "en") -> STTModel:
     """
     Create an instance of the Kroko-ASR STT model.
     :param hf_token:
@@ -26,7 +28,7 @@ def get_stt_model(hf_token: str | None, lang: Literal["en", "fr"] = "en") -> STT
     :return:
     """
     os.environ["TOKENIZERS_PARALLELISM"] = "false"
-    m = KrokoSTT(hf_token, lang)
+    m = KrokoSTT(hf_token=hf_token, lang=lang)
 
     try:
         print(click.style("INFO", fg="green") + ":\t Warming up Kroko-ASR STT model")
@@ -35,7 +37,7 @@ def get_stt_model(hf_token: str | None, lang: Literal["en", "fr"] = "en") -> STT
         print(click.style("INFO", fg="green") + ":\t model warmed up!")
 
     except Exception as e:
-        print(click.style("Warn", fg="red") + ":\t Could not warm up Kroko-ASR STT model", e)
+        print(click.style("Warn", fg="red") + ":\t Could not warm up Kroko-ASR STT model.", e)
 
     return m
 
@@ -49,8 +51,8 @@ class KrokoSTT(STTModel):
     def __init__(self, hf_token: str | None = None, lang: Literal["en", "fr"] = "en"):
         self.lang = lang
         if not hf_token:
-            hf_token = os.environ.get("HF_TOKEN")
-            if not hf_token:
+            self.hf_token = os.environ.get("HF_TOKEN")
+            if not self.hf_token:
                 raise ValueError("HF_TOKEN environment variable not set or provided")
         else:
             self.hf_token = hf_token
@@ -65,7 +67,6 @@ class KrokoSTT(STTModel):
         self.model_paths = {}
         self._download_models()
         self.recognizer = self._create_recognizer()
-        self.stream = self.recognizer.create_stream()
 
     def _download_models(self):
         """
@@ -95,8 +96,14 @@ class KrokoSTT(STTModel):
         if audio_np.dtype == np.int16:
             audio_np = audio_np.astype(np.float32) / 32768.0
         if sr != 16000:
-            audio_np: NDArray[np.float32] = librosa.resample(audio_np, sr, 16000)
+            audio_np: NDArray[np.float32] = librosa.resample(audio_np, orig_sr=sr, target_sr=16000)
+        if audio_np.ndim != 1:
+            audio_np = audio_np.reshape(-1)
 
-        self.stream.accept_waveform(16000, audio_np)
-        self.recognizer.decode_stream(self.stream)
-        return self.stream.get_result()
+        stream = self.recognizer.create_stream()
+        stream.accept_waveform(sr, audio_np)
+        while self.recognizer.is_ready(stream):
+            self.recognizer.decode_stream(stream)
+        return self.recognizer.get_result(stream)
+
+
