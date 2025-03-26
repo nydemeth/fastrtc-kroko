@@ -101,9 +101,25 @@ class KrokoSTT(STTModel):
         if audio_np.ndim != 1:
             audio_np = audio_np.reshape(-1)
 
-        self.stream.accept_waveform(16000, audio_np)
-        while self.recognizer.is_ready(self.stream):
-            self.recognizer.decode_stream(self.stream)
+
+        pad_duration = 1
+        pad_samples = int(pad_duration * 16000)
+        pad_start = np.zeros(pad_samples, dtype=np.float32)
+        pad_end = np.zeros(pad_samples, dtype=np.float32)
+        audio_np = np.concatenate([pad_start, audio_np, pad_end])
+
+        total_samples = audio_np.shape[0]
+        chunk_size = 4000
+        offset = 0
+
+        while offset < total_samples:
+            end = offset + chunk_size
+            chunk = audio_np[offset:end]
+            self.stream.accept_waveform(16000, chunk)
+            while self.recognizer.is_ready(self.stream):
+                self.recognizer.decode_stream(self.stream)
+            offset += chunk_size
+
         result = self.recognizer.get_result(self.stream)
         self.recognizer.reset(self.stream)
         return result
