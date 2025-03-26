@@ -8,7 +8,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "fastrtc-kroko"
-version = "0.1.1"
+version = "0.1.2"
 description = "The realtime communication library for Python. With support for Kroko-ASR model."
 license = "MIT"
 authors = [{"name" = "Siddharth Garg", email = "YOUREMAIL@domain.com"}]
