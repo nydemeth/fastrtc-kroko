@@ -48,7 +48,7 @@ class KrokoSTT(STTModel):
     :param hf_token: hugging face token to download gated models.
     :param lang: language to perform speech recognition. Currently supports english and french.
     """
-    def __init__(self, hf_token: str | None = None, lang: Literal["en", "fr"] = "en"):
+    def __init__(self, hf_token: str | None = None, lang: Literal["en", "fr", "es"] = "en"):
         self.lang = lang
         if not hf_token:
             self.hf_token = os.environ.get("HF_TOKEN")
