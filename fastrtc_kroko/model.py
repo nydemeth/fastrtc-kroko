@@ -75,7 +75,7 @@ class KrokoSTT(STTModel):
         """
         repo_id = "Banafo/Kroko-Streaming-ASR-Python"
         for model_name, filename in self.model_filenames.items():
-            self.model_paths[model_name] = hf_hub_download(repo_id=repo_id, token=self.hf_token, filename=filename)
+            self.model_paths[model_name] = hf_hub_download(repo_id=repo_id, token=self.hf_token, filename=filename, repo_type="space")
 
     def _create_recognizer(self) -> sherpa_onnx.OnlineRecognizer:
         """
