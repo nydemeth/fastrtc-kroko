@@ -20,7 +20,7 @@ class STTModel(Protocol):
     def stt(self, audio: tuple[int, NDArray[np.int16 | np.float32]]) -> str: ...
 
 @lru_cache
-def get_stt_model(hf_token: str | None = None, lang: Literal["en", "fr"] = "en") -> STTModel:
+def get_stt_model(hf_token: str | None = None, lang: Literal["en", "fr", "de"] = "en") -> STTModel:
     """
     Create an instance of the Kroko-ASR STT model.
     :param hf_token:
@@ -48,7 +48,7 @@ class KrokoSTT(STTModel):
     :param hf_token: hugging face token to download gated models.
     :param lang: language to perform speech recognition. Currently supports english and french.
     """
-    def __init__(self, hf_token: str | None = None, lang: Literal["en", "fr", "es"] = "en"):
+    def __init__(self, hf_token: str | None = None, lang: Literal["en", "fr", "es", "de"] = "en"):
         self.lang = lang
         if not hf_token:
             self.hf_token = os.environ.get("HF_TOKEN")
@@ -73,7 +73,7 @@ class KrokoSTT(STTModel):
         """
         Downloads encoder, decoder, joiner and tokens.txt from huggingface.
         """
-        repo_id = "Banafo/kroko-asr"
+        repo_id = "Banafo/Kroko-Streaming-ASR-Python"
         for model_name, filename in self.model_filenames.items():
             self.model_paths[model_name] = hf_hub_download(repo_id=repo_id, token=self.hf_token, filename=filename)
 
